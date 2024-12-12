@@ -48,3 +48,11 @@ async def get_genre(genre: genreURLChoices) -> list[dict]:
     return [
         book for book in books if book['genre'].lower() == genre.value.lower()
     ]
+
+
+
+
+
+@app.get('/test')
+async def about()  -> str:
+    return "An end point to test changes"
