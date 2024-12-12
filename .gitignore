@@ -1,0 +1,18 @@
+
+
+# Ignore virtual environments
+venv/
+env/
+.env/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore IDE-specific files
+.idea/
+.vscode/
+*.swp
+
+# Ignore other files you don't want in version control
+.DS_Store
