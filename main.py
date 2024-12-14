@@ -1,6 +1,6 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Path, Query
 from schemas import genreURLChoices, book, bookbase, bookcreate, bookwithID
-
+from typing import Annotated
 
 
 
@@ -21,21 +21,31 @@ books = [
 
 
 @app.get('/books')
-async def get_books(genre:genreURLChoices | None = None)  -> list[bookwithID]:
+async def get_books(genre:genreURLChoices | None = None, 
+                    q: Annotated[str | None ,Query(max_length=10)] = None,
+)  -> list[bookwithID]:
+    book_list = [bookwithID(**b) for b in books]
+
     if genre:
-        return [
+        book_list = [
             book(**b) for b in books if b['genre'].lower() == genre.value.lower()
         ]
+
+    if q:
+        book_list = [
+            b for b in book_list if q.lower() in b.name.lower()
+        ]
+
+    return book_list
     
-    return [
-        book(**b) for b in books
-    ]
+
+    
 
 
 
 
 @app.get('/books/{books_id}')
-async def get_books(books_id: int) -> bookwithID:
+async def get_books(books_id: Annotated[int, Path(title="The book--ID") ]) -> bookwithID:
     # Use `next()` to find the book with the matching ID
     book_instance = next((bookwithID(**b) for b in books if b['id'] == books_id), None)
     if book_instance is None:

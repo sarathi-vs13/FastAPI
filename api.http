@@ -2,6 +2,12 @@ POST http://127.0.0.1:8000/books
 Content-Type: application/json
 
 {
-  "name": "GOT",
-  "genre": "Fantasy"
+  "name": "HOTR",
+  "genre": "Horror"
 }
+
+###
+
+GET  http://127.0.0.1:8000/books?genre=children
+
+
