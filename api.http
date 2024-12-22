@@ -2,12 +2,29 @@ POST http://127.0.0.1:8000/books
 Content-Type: application/json
 
 {
-  "name": "HOTR",
-  "genre": "Horror"
+  "id": 1,
+  "name": "The car and the cat",
+  "genre": "children",
+  "authors": [
+    {
+      "id": 1,
+      "title": "The Setting",
+      "writer": "Giver GV",
+      "release_date": "2024-12-22",
+      "book_id": 1
+    }
+  ]
 }
 
 ###
 
-GET  http://127.0.0.1:8000/books?genre=children
+GET  http://127.0.0.1:8000/books/3
+
+
+
+
+
+
+
 
 
