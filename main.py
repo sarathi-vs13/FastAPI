@@ -4,6 +4,7 @@ from typing import Annotated
 from sqlmodel import Session, select
 from contextlib import asynccontextmanager
 from db import init_db, get_session
+from models import BookResponse
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -55,9 +56,11 @@ async def get_books(genre: genreURLChoices | None = None,
 #     session.refresh(new_book)
 
 #     return new_book
-@app.post("/books")
-async def create_book(book_data: bookcreate, session: Session = Depends(get_session)) -> book:
-    # Create a new book instance (without an ID)
+
+
+@app.post("/books", response_model=BookResponse)
+async def create_book(book_data: bookcreate, session: Session = Depends(get_session)) -> BookResponse:
+    # Create a new book instance
     new_book = book(name=book_data.name, genre=book_data.genre)
 
     # If authors are provided, associate them with the book
@@ -67,29 +70,19 @@ async def create_book(book_data: bookcreate, session: Session = Depends(get_sess
                 title=author_data.title,
                 writer=author_data.writer,
                 release_date=author_data.release_date,
-                book=new_book  # Automatically associate the author with the new book
+                book=new_book  # Associate with the new book instance
             )
             session.add(author_instance)
 
-    # Add the book to the session (do this after authors to ensure all are saved properly)
+    # Add the book to the session
     session.add(new_book)
-    
-    # Commit to save the book and its authors to the database
     session.commit()
-    
-    # Refresh the new book to get its assigned ID
-    session.refresh(new_book)  
+    session.refresh(new_book)  # Refresh to include database-assigned ID and relationships
 
-    # Fetch the authors and load them explicitly with the book
-    session.refresh(new_book)  # Ensure relationships are refreshed
-
-    # Manually reload the authors relationship if needed
+    # Explicitly load the authors relationship
     new_book.authors = session.exec(select(author).where(author.book_id == new_book.id)).all()
 
     return new_book
-
-
-
 
 
 
@@ -98,7 +91,8 @@ async def create_book(book_data: bookcreate, session: Session = Depends(get_sess
 async def get_books(books_id: Annotated[int, Path(title="The book--ID")], 
                     session: Session = Depends(get_session)) -> book:
     # Query the book by its ID using session
-    db_book = session.query(book).filter(book.id == books_id).first()
+    db_book = session.exec(select(book).where(book.id == books_id)).first()
+
 
     if db_book is None:
         # Raise an HTTPException if the book is not found
@@ -131,32 +125,3 @@ async def test()  -> str:
     return "An end point to test changes"
 
 
-
-
-
-# @app.post("/books")
-# async def create_book(book_data: bookcreate, session: Session = Depends(get_session)) -> book:
-#     # Create a new book instance (without an ID)
-#     new_book = book(name=book_data.name, genre=book_data.genre)
-
-#     # If authors are provided, associate them with the book
-#     if book_data.authors:
-#         for author_data in book_data.authors:
-#             author_instance = author(
-#                 title=author_data.title,
-#                 writer=author_data.writer,
-#                 release_date=author_data.release_date,
-#                 book=new_book  # Automatically associate the author with the new book
-#             )
-#             session.add(author_instance)
-
-#     # Add the book to the session (do this after authors to ensure all are saved properly)
-#     session.add(new_book)
-    
-#     # Commit to save the book and its authors to the database
-#     session.commit() 
-    
-#     # Refresh the new book to get its assigned ID
-#     session.refresh(new_book)  
-
-#     return new_book

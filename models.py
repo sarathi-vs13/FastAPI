@@ -32,10 +32,20 @@ class author(authorbase, table=True):
     book_id: Optional[int] = Field(default=None, foreign_key="book.id")  # Foreign key to the book table
     book: "book" = Relationship(back_populates="authors")  # Relationship with the book
 
+
+
+
 # The base model for books without the authors association.
 class bookbase(SQLModel):
     name: str
     genre: genreChoices
+
+
+# The book model, which includes the ID and the relationship to authors.
+class book(bookbase, table=True):
+    id: int = Field(default=None, primary_key=True)
+    authors: List[author] = Relationship(back_populates="book") # Relationship with authors
+
 
 # Model to handle book creation, including authors as an optional field.
 class bookcreate(bookbase):
@@ -45,7 +55,23 @@ class bookcreate(bookbase):
     def title_case_genre(cls, value):
         return value.title()
 
-# The book model, which includes the ID and the relationship to authors.
-class book(bookbase, table=True):
-    id: int = Field(default=None, primary_key=True)
-    authors: List[author] = Relationship(back_populates="book") # Relationship with authors
+
+
+class AuthorResponse(BaseModel):
+    id: int
+    title: str
+    writer: str
+    release_date: date
+
+    class Config:
+        from_attributes = True
+
+
+class BookResponse(BaseModel):
+    id: int
+    name: str
+    genre: str
+    authors: Optional[List[AuthorResponse]] = []
+
+    class Config:
+        from_attributes = True
